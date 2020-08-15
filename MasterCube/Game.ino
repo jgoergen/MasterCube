@@ -7,6 +7,8 @@ byte turn = 0;
 byte currentRound = 0;
 uint32_t lastTurn = 0;
 int lastGameUpdate = 0;
+int introFrames = 0;
+int gameWaitFrames = 0;
 
 void Game_Init() {
   currentRound = 0;
@@ -14,34 +16,52 @@ void Game_Init() {
   lastTurn = 0;
   Game_GenerateGameColors();
   gameState = 0;
+  introFrames = 50;
+  Display_SetMotion(1);
   Serial.println(F("Game Setup"));
 }
 
 void Game_Update() {
-
-  if (millis() - lastGameUpdate <= GAME_UPDATE_RATE)
+  
+  if (millis() - lastGameUpdate >= GAME_UPDATE_RATE)
   {
     lastGameUpdate = millis();
-    return;
-  }
+
+    if (gameWaitFrames > 0)
+    {
+      gameWaitFrames --;
+
+      if (gameWaitFrames > 0)
+      {
+        Serial.print(".");
+      }
+      else
+      {
+        Serial.println(".");
+      }
+      return;
+    }
+
+    switch(gameState) {
+      case 0:
+        Game_RunIntro();
+        break;
+        
+      case 1:
+          Game_Draw_Turn_Left();
+          GAME_Start_Turn();
+          break;
   
-  switch(gameState) {
-    case 0:
-      Game_RunIntro();
-      break;
-      
-    case 1:
-        Game_Draw_Turn_Left();
-        GAME_Start_Turn();
-        break;
-
-    case 2:
-        GAME_Entry_Update();
-        break;
-
-    case 3:
-        GAME_End_Turn();
-        break;
+      case 2:
+          GAME_Entry_Update();
+          break;
+  
+      case 3:
+          GAME_End_Turn();
+          break;
+    }
+  
+    return;
   }
 }
 
@@ -78,44 +98,22 @@ void Game_GenerateGameColors() {
 }
 
 void Game_RunIntro() {
-  Display_Clear();
-  Display_Set_Direction(TOP);
-  Display_update();
-  delay(200);
+  //Display_Clear();
+  int dir = int((cos(millis()) + 1) * 3.5);
+  Display_SetColor(
+    dir, 
+    floor(random(255)), 
+    floor(random(255)), 
+    floor(random(255)));
 
-  Display_Clear();
-  Display_Set_Direction(LEFT);
-  Display_update();
-  delay(200);
-
-  Display_Clear();
-  Display_Set_Direction(BOTTOM);
-  Display_update();
-  delay(200);
-
-  Display_Clear();
-  Display_Set_Direction(RIGHT);
-  Display_update();
-  delay(200);
-
-  Display_Clear();
-  Display_Set_Direction(BACK);
-  Display_update();
-  delay(200);
-
-  Display_Clear();
-  Display_Set_Direction(LEFT);
-  Display_update();
-  delay(200);
-
-  Display_Clear();
-  Display_Set_Direction(FRONT);
-  Display_update();
-  delay(200);
-
-  Display_Clear();
-  Game_Enforce_Top_Position();
-  gameState = 1;
+  introFrames --;
+  if (introFrames < 1) 
+  {
+    Serial.println("");
+    Display_Clear();
+    Game_Enforce_Top_Position();
+    gameState = 1;
+  }
 }
 
 void GAME_Start_Turn()
@@ -130,19 +128,26 @@ void GAME_Start_Turn()
 
 void GAME_Entry_Update()
 {
+  bool knocked = MPU_GetKnock();
   byte newDirection = MPU_GetDirection();
-  
-    if (newDirection != selectedDirection)
-    {
-        selectedDirection = newDirection;        
-        Display_Set_Direction(selectedDirection);
-        turnColors[currentRound][turn] = selectedDirection;
-        Serial.println(selectedDirection);
-        
-        delay(300);
-        Display_SetAll(255, 255, 255);
-        gameState = 3;
-    }
+
+  // is this a direction at all, and is it different then the last one?
+  if (newDirection != 9 && newDirection != selectedDirection) // knocked && 
+  {
+      // confirm this direction hasn't been chosen already
+      if (wasAlreadyChosen(newDirection))
+      {
+        return;
+      }
+
+      selectedDirection = newDirection;        
+      Display_Set_Direction(selectedDirection);
+      turnColors[currentRound][turn] = selectedDirection;
+      Serial.println(selectedDirection);
+      gameWaitFrames = 20;
+      Display_SetAll(255, 255, 255);
+      gameState = 3;
+  }
 }
 
 void GAME_End_Turn()
@@ -155,6 +160,19 @@ void GAME_End_Turn()
     {
         GAME_End_Round();
     }
+}
+
+bool wasAlreadyChosen(byte dir)
+{
+  for (byte i = 0; i < TURNS; i++)
+  {
+    if (turnColors[currentRound][i] == dir) 
+    {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void GAME_End_Round()
@@ -219,7 +237,7 @@ void Game_Draw_Turn_Left() {
   for (byte i = 0; i < TURNS; i++)
   {
     if (turnColors[currentRound][i] != 99) {
-      Display_Set(turnColors[currentRound][i], 0, 0, 0);
+      Display_SetColor(turnColors[currentRound][i], 0, 0, 0);
     }
   }
 }

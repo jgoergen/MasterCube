@@ -33,10 +33,14 @@
 #define MPU_READ_RATE       500
 #define DISPLAY_RATE        30
 #define GAME_UPDATE_RATE    30
-#define RGB_LED_BRIGHTNESS  100
-#define ROUNDS              5
+#define COLOR_CHANGE_SPEED  0.5f
+#define MOTION_SPEED        0.001f
+#define COLOR_CHANGE_WAIT   20
+#define ROUNDS              20
 #define TURNS               6
 #define DRY_UPDATE_COUNT    50
+#define KNOCK_THRESHOLD     2.5
+#define MPU_DIRECTION_PAD   30 // max 45
 
 #define TOP               0
 #define BOTTOM            3
@@ -108,7 +112,7 @@ void mainUpdate() {
   }
   
   Game_Update();
-  Display_update();
+  Display_Update();
 }
 
 void boot_Update() {

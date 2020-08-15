@@ -8,12 +8,14 @@ int lastRoll = 0;
 int lastPitch = 0;
 int lastYaw = 0;
 byte lastDirection = 0;
+bool knockDetected = false;
 
 void MPU_Init() {
   Wire.begin(MPU_SDA, MPU_SCL);
   mpu.setup();
 
   // calibrate anytime you want to
+  /*
   Display_SetAll(0, 0, 255);
   Display_Force_Update();
   mpu.calibrateAccelGyro();
@@ -21,6 +23,7 @@ void MPU_Init() {
   Display_SetAll(0, 100, 255);
   Display_Force_Update();  
   mpu.calibrateMag();
+  */
   
   Display_Clear();
   Display_Force_Update();
@@ -30,12 +33,32 @@ void MPU_Update() {
   if (millis() - lastMPUUpdate > MPU_UPDATE_RATE) {
     lastMPUUpdate = millis();
     mpu.update();
+
+    /*
+    Serial.print(mpu.getAcc(0));
+    Serial.print(",");
+    Serial.print(mpu.getAcc(1));
+    Serial.print(",");
+    Serial.println(mpu.getAcc(2));
+    */
+
+    if (mpu.getAcc(0) > KNOCK_THRESHOLD || mpu.getAcc(1) > KNOCK_THRESHOLD || mpu.getAcc(2) > KNOCK_THRESHOLD) {
+
+      knockDetected = true;
+      Serial.println("Knock!");
+    }
   }
 
   if (millis() - lastMPURead > MPU_READ_RATE) {
     lastMPURead = millis();
     MPU_Read();
   }
+}
+
+bool MPU_GetKnock() {
+  bool val = knockDetected;
+  knockDetected = false;
+  return val;
 }
 
 byte MPU_GetDirection() {
@@ -78,12 +101,12 @@ void MPU_Read() {
 bool MPU_Reading_In_Range(int val, byte rangeIndex) {
   switch (rangeIndex) {
     case 0:
-      return (val >= 135 || val < -135);
+      return (val >= (135 + MPU_DIRECTION_PAD) || val < (-135 - MPU_DIRECTION_PAD));
     case 1:
-      return (val >= -135 && val < -45);
+      return (val >= (-135 + MPU_DIRECTION_PAD) && val < (-45 - MPU_DIRECTION_PAD));
     case 2:
-      return (val >= -45 && val < 45);
+      return (val >= (-45 + MPU_DIRECTION_PAD) && val < (45 - MPU_DIRECTION_PAD));
     case 3:
-      return (val >= 45 && val < 135);
+      return (val >= (45 + MPU_DIRECTION_PAD) && val < (135 - MPU_DIRECTION_PAD));
   }
 }
