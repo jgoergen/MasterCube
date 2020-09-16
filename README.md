@@ -2,6 +2,12 @@
 
 This is a game I'm building with the concept of a puzzle box that is randomized every time you turn it on. The saddest thing, to me, about a great puzzle box, is solving it. It immediately becomes an art piece until you somehow forget how to solve it again. 
 
+
+![Mastercube Demonstration](https://raw.githubusercontent.com/jgoergen/MasterCube/master/mastercube.gif)
+
+This is a prototype built in a foam cube.
+
+
 ## Puzzle description
 * When you turn the device on it, it starts a game by randomly choose the 'goal' as a chain of sides in a certain order. 
 * Every round starts with the cube requiring it's placed in a neutral position facing upwards (it will complain until you do)
