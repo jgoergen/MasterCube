@@ -130,6 +130,13 @@ void Display_SetAllImmediate(uint8_t r, uint8_t g, uint8_t b)
   strip.show();
 }
 
+void Display_SetColorImmediate(byte index, byte r, byte g, byte b)
+{
+  Display_SetColor(index, r, g, b);
+  strip.setPixelColor(index, strip.Color(r, g, b));
+  strip.show();
+}
+
 void Display_Set_Direction(byte which) 
 {
   byte r = 0;
@@ -175,4 +182,51 @@ void Display_Set_Direction(byte which)
   }
 
   Display_SetColor(which, r, g, b);
+}
+
+void Display_Set_Direction_Immediate(byte which) 
+{
+  byte r = 0;
+  byte g = 0;
+  byte b = 0;
+
+  switch(which) {
+    case TOP:
+      r = TOP_R;
+      g = TOP_G;
+      b = TOP_B;
+      break;
+
+    case LEFT:
+      r = LEFT_R;
+      g = LEFT_G;
+      b = LEFT_B;
+      break;
+
+    case RIGHT:
+      r = RIGHT_R;
+      g = RIGHT_G;
+      b = RIGHT_B;
+      break;
+
+    case FRONT:
+      r = FRONT_R;
+      g = FRONT_G;
+      b = FRONT_B;
+      break;
+
+    case BACK:
+      r = BACK_R;
+      g = BACK_G;
+      b = BACK_B;
+      break;
+
+    case BOTTOM:
+      r = BOTTOM_R;
+      g = BOTTOM_G;
+      b = BOTTOM_B;
+      break;
+  }
+
+  Display_SetColorImmediate(which, r, g, b);
 }

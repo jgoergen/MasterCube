@@ -186,12 +186,7 @@ void GAME_End_Round()
         if (turnColors[currentRound][i] == targetColors[i])
         {
             correct++;
-            Display_SetAll(255, 255, 255);
-            Display_Force_Update();
-            delay(500);
-            Display_SetAll(0, 0, 0);
-            Display_Force_Update();
-            delay(500);
+            Display_Flash(255, 255, 255, 1, 500);
         }
     }
 
@@ -244,14 +239,12 @@ void Game_Draw_Turn_Left() {
 
 void GAME_Draw_Answer() {  
   for (byte o = 0; o < 5; o++) {
-    Display_SetAll(100, 155, 255);    
-    Display_Force_Update();
+    Display_SetAllImmediate(100, 155, 255);
     delay(1000);
     for (byte i = 0; i < TURNS; i++)
     {
       Display_Clear();
-      Display_Set_Direction(targetColors[i]);
-      Display_Force_Update();
+      Display_Set_Direction_Immediate(targetColors[i]);
       delay(500);
     }
     delay(500);
